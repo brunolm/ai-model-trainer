@@ -1,0 +1,14 @@
+[tools]
+python = "3.13.13"
+
+[tasks.setup]
+description = "Create the shared root virtual environment and install image inference dependencies."
+run = [
+  'python -m venv ..\..\..\.venv',
+  '..\..\..\.venv\Scripts\python.exe -m pip install -r ..\..\..\requirements.txt',
+  '..\..\..\.venv\Scripts\python.exe -m pip install -r ..\..\..\requirements-image.txt',
+]
+
+[tasks.predict]
+description = "Run the Python image example against the before-after-transform LoRA adapter."
+run = '..\..\..\.venv\Scripts\python.exe .\src\index.py --steps 20'

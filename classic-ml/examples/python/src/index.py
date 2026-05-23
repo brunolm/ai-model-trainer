@@ -6,14 +6,14 @@ from pathlib import Path
 
 def main():
     args = parse_args()
-    root = Path(__file__).resolve().parents[3]
+    root = Path(__file__).resolve().parents[4]
     sys.path.insert(0, str(root))
 
     from model_factory.artifacts import load_artifact
     from model_factory.metrics import make_jsonable
     from model_factory.torch_text import predict_text_values
 
-    model_path = root / "models" / "profanity-classifier.bin"
+    model_path = root / "classic-ml" / "models" / "profanity-classifier.bin"
 
     if not model_path.exists():
         raise FileNotFoundError(f"Model file not found. Run `mise run train-profanity` from the repository root: {model_path}")

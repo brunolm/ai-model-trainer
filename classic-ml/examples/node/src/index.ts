@@ -67,12 +67,12 @@ function parseArgs(args: string[]) {
 }
 
 function projectPaths() {
-  const root = resolve(import.meta.dir, "../../..");
+  const root = resolve(import.meta.dir, "../../../..");
 
   return {
     root,
-    onnxPath: resolve(root, "models/profanity-classifier.onnx"),
-    vectorizerPath: resolve(root, "models/profanity-classifier-vectorizer.json"),
+    onnxPath: resolve(root, "classic-ml/models/profanity-classifier.onnx"),
+    vectorizerPath: resolve(root, "classic-ml/models/profanity-classifier-vectorizer.json"),
   };
 }
 

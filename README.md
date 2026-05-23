@@ -1,12 +1,13 @@
 # AI Model Trainer
 
-AI Model Trainer is a small config-driven project for training your own machine learning models.
+AI Model Trainer is a config-driven training workspace with separate root folders for each training style.
 
-The first included example is an English profanity classifier, but the same training and prediction CLI can also be used for:
+Current styles:
 
-- text classification, such as profanity, spam, sentiment, or topic detection
-- tabular classification, such as churn, fraud, or pass/fail prediction
-- tabular regression, such as price, duration, or score prediction
+- `classic-ml`: text classification, tabular classification, and tabular regression
+- `image-generation`: Stable Diffusion LoRA training for image-generation adapters
+
+The root `model_factory` package provides the shared CLI.
 
 ## Setup
 
@@ -17,6 +18,37 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r .\requirements.txt
 ```
+
+Optional image-generation dependencies are separate because they pull in heavier Hugging Face packages:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r .\requirements-image.txt
+```
+
+## Hugging Face Token
+
+Image training downloads base models from Hugging Face. Public downloads can work without a token, but `HF_TOKEN` raises rate limits and is required for gated models.
+
+Create a Hugging Face read token at:
+
+```text
+https://huggingface.co/settings/tokens
+```
+
+Save it in a root `.env` file:
+
+```powershell
+Copy-Item .\.env.example .\.env
+notepad .\.env
+```
+
+Set the value:
+
+```text
+HF_TOKEN=hf_your_actual_token_here
+```
+
+The training CLI loads `.env` automatically before model downloads. `.env` is ignored by git.
 
 ## Mise
 
@@ -29,6 +61,12 @@ mise run setup
 mise run train-profanity
 mise run predict-profanity
 mise run check
+```
+
+Optional image setup:
+
+```powershell
+mise run setup-image
 ```
 
 Optional: install the local command name:
@@ -49,202 +87,253 @@ or:
 ai-model-trainer --help
 ```
 
-## Train the profanity classifier example
+## Folder Layout
 
-```powershell
-python -m model_factory train --config .\examples\profanity\config.yaml
+```text
+classic-ml\
+  configs\templates\
+  examples\
+  models\
+
+image-generation\
+  configs\templates\
+  examples\
+  models\
+
+model_factory\
 ```
 
-This reads `examples\profanity\data.csv`, trains a TF-IDF + PyTorch feed-forward text classifier, and writes:
+Add future training styles as new root folders with their own `configs`, `examples`, and `models` subfolders.
 
-- `models\profanity-classifier.bin`
-- `models\profanity-classifier.onnx`
-- `models\profanity-classifier-vectorizer.json`
-- `models\profanity-classifier-metrics.json`
+## Classic ML
 
-The `.bin` file is a binary AI Model Trainer artifact saved with `torch.save`. AI Model Trainer can load it again with the `predict` command. The `.onnx` file is the exported neural network for runtimes like `onnxruntime-node`. The vectorizer JSON is required because the ONNX model expects numeric TF-IDF features, not raw text.
+Classic ML trains small supervised models from CSV files.
 
-## Try prediction
+Supported tasks:
+
+- `text_classification`
+- `tabular_classification`
+- `tabular_regression`
+
+Train the included profanity classifier:
 
 ```powershell
-python -m model_factory predict --model .\models\profanity-classifier.bin --text "hello friend"
-python -m model_factory predict --model .\models\profanity-classifier.bin --text "fuck off"
+python -m model_factory train --config .\classic-ml\examples\profanity\config.yaml
 ```
 
-You can make the detector stricter or looser with a threshold:
+This reads `classic-ml\examples\profanity\data.csv` and writes:
+
+- `classic-ml\models\profanity-classifier.bin`
+- `classic-ml\models\profanity-classifier.onnx`
+- `classic-ml\models\profanity-classifier-vectorizer.json`
+- `classic-ml\models\profanity-classifier-metrics.json`
+
+Try prediction:
 
 ```powershell
-python -m model_factory predict --model .\models\profanity-classifier.bin --text "damn" --threshold 0.70
+python -m model_factory predict --model .\classic-ml\models\profanity-classifier.bin --text "hello friend"
+python -m model_factory predict --model .\classic-ml\models\profanity-classifier.bin --text "fuck off"
+```
+
+You can make binary classifiers stricter or looser with a threshold:
+
+```powershell
+python -m model_factory predict --model .\classic-ml\models\profanity-classifier.bin --text "damn" --threshold 0.70
 ```
 
 Lower thresholds flag more text. Higher thresholds flag less text.
 
-## Batch prediction from CSV
-
-For text models, the input CSV must contain the configured text column.
+Batch prediction from CSV:
 
 ```powershell
-python -m model_factory predict --model .\models\profanity-classifier.bin --input .\examples\profanity\data.csv --output .\models\profanity-predictions.csv
+python -m model_factory predict --model .\classic-ml\models\profanity-classifier.bin --input .\classic-ml\examples\profanity\data.csv --output .\classic-ml\models\profanity-predictions.csv
 ```
 
-## Node Example
+### Classic Configs
 
-There is a small Bun + TypeScript example in `examples\node`. It uses `onnxruntime-node` to run `models\profanity-classifier.onnx` directly, without invoking Python.
+Templates live under `classic-ml\configs\templates`.
+
+For new classic models:
+
+1. Create a folder under `classic-ml\examples`, such as `classic-ml\examples\spam`.
+2. Add a CSV file with your examples.
+3. Copy the closest template from `classic-ml\configs\templates`.
+4. Edit `data.path`, `data.target`, and feature columns.
+5. Choose a supported model type.
+6. Run `python -m model_factory train --config .\classic-ml\examples\your-example\config.yaml`.
+7. Test predictions with `python -m model_factory predict`.
+8. Add model mistakes back into your dataset and retrain.
+
+Supported classic model types:
+
+- Text: `feedforward_text_classifier`, `logistic_regression`, `linear_svc`, `multinomial_nb`, `random_forest_classifier`, `gradient_boosting_classifier`
+- Tabular classification: `logistic_regression`, `random_forest_classifier`, `gradient_boosting_classifier`
+- Tabular regression: `linear_regression`, `random_forest_regressor`, `gradient_boosting_regressor`
+
+## Image Generation
+
+Image generation currently supports:
+
+- `image_generation_lora`: prompt-to-image LoRA training
+- `paired_image_translation`: before-image plus instruction to after-image LoRA training
+
+This trains a LoRA adapter for a Stable Diffusion 1.x-style base model using Hugging Face Diffusers. It does not train a full image generator from scratch.
+
+Prepare dependencies:
 
 ```powershell
-Set-Location .\examples\node
+.\.venv\Scripts\python.exe -m pip install -r .\requirements-image.txt
+```
+
+Create or copy an image-generation config:
+
+```powershell
+New-Item -ItemType Directory -Path .\image-generation\examples\my-style -Force | Out-Null
+Copy-Item .\image-generation\configs\templates\stable-diffusion-lora.yaml .\image-generation\examples\my-style\config.yaml
+```
+
+Your example folder should contain:
+
+```text
+image-generation\examples\my-style\
+  config.yaml
+  captions.csv
+  images\
+    sample-001.png
+    sample-002.png
+```
+
+The captions CSV uses one row per image:
+
+```csv
+image,caption
+sample-001.png,a photo in the custom training style
+sample-002.png,a detailed scene in the custom training style
+```
+
+Train:
+
+```powershell
+python -m model_factory train --config .\image-generation\examples\my-style\config.yaml
+```
+
+The image trainer writes LoRA weights and a summary JSON under `image-generation\models`.
+
+### Image Config
+
+```yaml
+project:
+  name: my-style-lora
+
+task: image_generation_lora
+backend: diffusers
+
+data:
+  image_dir: images
+  captions_path: captions.csv
+  image_column: image
+  caption_column: caption
+
+model:
+  type: stable_diffusion_lora
+  base_model: runwayml/stable-diffusion-v1-5
+  params:
+    rank: 16
+    alpha: 16
+    dropout: 0.0
+
+training:
+  resolution: 512
+  batch_size: 1
+  epochs: 1
+  max_train_steps: 1000
+  learning_rate: 0.0001
+  mixed_precision: fp16
+  gradient_checkpointing: true
+  seed: 42
+  device: auto
+  num_workers: 0
+
+output:
+  adapter_path: ../../models/my-style-lora
+  metrics_path: ../../models/my-style-lora-summary.json
+```
+
+If you do not want a captions CSV, omit `captions_path` and place a `.txt` file beside each image with the same basename.
+
+### Before/After Example
+
+Use the before/after example when the input is an image and the output should be a transformed image:
+
+```text
+before image + instruction -> after image
+```
+
+Example layout:
+
+```text
+image-generation\examples\before-after-transform\
+  config.yaml
+  sample-pairs.csv
+  before\
+    sample-001.png
+  after\
+    sample-001.png
+```
+
+The pairs CSV maps the source image to the desired result:
+
+```csv
+before,after,instruction
+before/sample-001.png,after/sample-001.png,turn this sketch into a polished product render
+before/sample-002.png,after/sample-002.png,clean up the screenshot and make it look professional
+```
+
+The matching config template is `image-generation\configs\templates\paired-image-translation.yaml`.
+
+Train the included before/after sample:
+
+```powershell
+python -m model_factory train --config .\image-generation\examples\before-after-transform\config.yaml
+```
+
+The paired trainer saves LoRA weights under `image-generation\models\before-after-transform`. It expects an InstructPix2Pix-style base model such as `timbrooks/instruct-pix2pix`, because LoRA weights alone cannot add the before-image conditioning channel to a plain text-to-image base model.
+
+## Runtime Examples
+
+The classic profanity model includes small runtime examples:
+
+```powershell
+Set-Location .\classic-ml\examples\node
 mise trust .\.mise.toml
 mise install
 mise run setup
 mise run predict
-bun run src\index.ts "hello friend"
 ```
 
-## Python Example
-
-There is also a small Python example in `examples\python`. It loads the native PyTorch `.bin` artifact directly.
-
 ```powershell
-Set-Location .\examples\python
+Set-Location .\classic-ml\examples\python
 mise trust .\.mise.toml
 mise install
 mise run predict
-..\..\.venv\Scripts\python.exe .\src\index.py "hello friend"
 ```
 
-## How configs work
+The before/after image adapter includes matching Python and Node examples:
 
-A training config tells AI Model Trainer:
-
-- what task you are training
-- where the CSV data is
-- which column is the target label
-- which model algorithm to use
-- where to save the trained model and metrics
-
-The profanity example is:
-
-```yaml
-project:
-  name: profanity-classifier
-
-task: text_classification
-backend: pytorch
-
-data:
-  path: data.csv
-  text_column: text
-  target: label
-
-features:
-  type: tfidf
-  lowercase: true
-  analyzer: char_wb
-  ngram_range: [3, 5]
-  max_features: 5000
-
-model:
-  type: feedforward_text_classifier
-  params:
-    hidden_sizes: [64]
-    dropout: 0.2
-
-training:
-  epochs: 120
-  batch_size: 16
-  learning_rate: 0.01
-  random_state: 42
-  device: auto
-
-split:
-  test_size: 0.25
-  random_state: 42
-  stratify: true
-
-labels:
-  positive_label: 1
-
-output:
-  model_path: ../../models/profanity-classifier.bin
-  onnx_path: ../../models/profanity-classifier.onnx
-  vectorizer_path: ../../models/profanity-classifier-vectorizer.json
-  metrics_path: ../../models/profanity-classifier-metrics.json
+```powershell
+Set-Location .\image-generation\examples\python
+mise trust .\.mise.toml
+mise install
+mise run setup
+mise run predict
 ```
 
-Relative paths are resolved from the folder containing the config file.
-
-## Supported tasks
-
-### `text_classification`
-
-Use this when each row has one text column and one label column.
-
-Good examples:
-
-- profanity detection
-- spam detection
-- sentiment detection
-- ticket category detection
-
-Supported feature type:
-
-- `tfidf`
-
-Supported models:
-
-- `feedforward_text_classifier` with `backend: pytorch`
-- `logistic_regression` with the default scikit-learn backend
-- `linear_svc` with the default scikit-learn backend
-- `multinomial_nb` with the default scikit-learn backend
-- `random_forest_classifier` with the default scikit-learn backend
-- `gradient_boosting_classifier` with the default scikit-learn backend
-
-For new text classifiers, prefer `backend: pytorch`. The scikit-learn models remain useful for quick baselines. `linear_svc` is often strong for text but does not provide probabilities by default.
-
-### `tabular_classification`
-
-Use this when each row has structured columns and one label column.
-
-Good examples:
-
-- customer churn prediction
-- fraud/not fraud
-- pass/fail prediction
-- lead quality prediction
-
-Supported models:
-
-- `logistic_regression`
-- `random_forest_classifier`
-- `gradient_boosting_classifier`
-
-Numeric columns are imputed with median values and scaled. Categorical columns are imputed with the most common value and one-hot encoded.
-
-### `tabular_regression`
-
-Use this when each row has structured columns and the target is a number.
-
-Good examples:
-
-- price prediction
-- time-to-complete prediction
-- score prediction
-
-Supported models:
-
-- `linear_regression`
-- `random_forest_regressor`
-- `gradient_boosting_regressor`
-
-## Creating your own model
-
-1. Create a folder under `examples`, such as `examples\spam`.
-2. Add a CSV file with your examples.
-3. Copy the closest config template from `configs\templates`.
-4. Edit `data.path`, `data.target`, and feature columns.
-5. Choose a model type.
-6. Run `python -m model_factory train --config .\examples\your-example\config.yaml`.
-7. Test predictions with `python -m model_factory predict`.
-8. Add model mistakes back into your dataset and retrain.
+```powershell
+Set-Location .\image-generation\examples\node
+mise trust .\.mise.toml
+mise install
+mise run setup
+mise run predict
+```
 
 The main skill is dataset quality. A simple model with good examples usually beats a complex model with unclear labels.

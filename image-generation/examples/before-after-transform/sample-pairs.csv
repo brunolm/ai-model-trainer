@@ -1,0 +1,8 @@
+before,after,instruction
+before/0001_before.jpg,after/0001_after.jpg,PROMPT
+before/0002_before.jpg,after/0002_after.jpg,PROMPT
+before/0003_before.jpg,after/0003_after.jpg,PROMPT
+before/0004_before.jpg,after/0004_after.jpg,PROMPT
+before/0005_before.jpg,after/0005_after.jpg,PROMPT
+before/0006_before.jpg,after/0006_after.jpg,PROMPT
+before/0007_before.jpg,after/0007_after.jpg,PROMPT

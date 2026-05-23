@@ -12,5 +12,14 @@ dependencies = [
   "onnx",
 ]
 
+[project.optional-dependencies]
+image = [
+  "diffusers",
+  "transformers",
+  "peft",
+  "Pillow",
+  "safetensors",
+]
+
 [project.scripts]
 ai-model-trainer = "model_factory.cli:main"

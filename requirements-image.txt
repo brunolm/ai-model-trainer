@@ -1,0 +1,5 @@
+diffusers
+transformers
+peft
+Pillow
+safetensors

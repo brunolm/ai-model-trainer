@@ -5,8 +5,8 @@ This example uses Bun and TypeScript to run the AI Model Trainer profanity class
 The Node script loads:
 
 ```text
-models\profanity-classifier.onnx
-models\profanity-classifier-vectorizer.json
+classic-ml\models\profanity-classifier.onnx
+classic-ml\models\profanity-classifier-vectorizer.json
 ```
 
 It does not invoke Python. The vectorizer JSON is required because the ONNX model expects numeric TF-IDF features, not raw text.
@@ -24,7 +24,7 @@ mise run train-profanity
 
 ## Run With Mise
 
-From `examples\node`:
+From `classic-ml\examples\node`:
 
 ```powershell
 mise trust .\.mise.toml
@@ -35,7 +35,7 @@ mise run predict
 
 ## Run With Bun Directly
 
-From `examples\node`:
+From `classic-ml\examples\node`:
 
 ```powershell
 bun run src\index.ts "hello friend"

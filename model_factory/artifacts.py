@@ -39,9 +39,19 @@ def output_model_path(config):
         return resolve_path(config, configured_path)
 
     if training_backend(config) == "pytorch":
-        return Path("models") / f"{project_name(config)}.bin"
+        return Path("classic-ml") / "models" / f"{project_name(config)}.bin"
 
-    return Path("models") / f"{project_name(config)}.joblib"
+    return Path("classic-ml") / "models" / f"{project_name(config)}.joblib"
+
+
+def output_adapter_path(config):
+    output = config.get("output") or {}
+    configured_path = output.get("adapter_path")
+
+    if configured_path:
+        return resolve_path(config, configured_path)
+
+    return Path("image-generation") / "models" / project_name(config)
 
 
 def output_metrics_path(config):

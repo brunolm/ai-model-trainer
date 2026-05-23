@@ -14,8 +14,9 @@ from model_factory.artifacts import (
     save_artifact,
     training_backend,
 )
-from model_factory.config import load_config
+from model_factory.config import is_image_generation_task, load_config
 from model_factory.data import load_training_frame, split_features_and_target, split_train_test
+from model_factory.env import load_project_env
 from model_factory.metrics import evaluate_model, make_jsonable, save_metrics
 from model_factory.pipelines import build_pipeline
 
@@ -53,7 +54,13 @@ def build_parser():
 
 
 def train(args):
+    load_project_env(Path(args.config))
     config = load_config(args.config)
+
+    if is_image_generation_task(config):
+        train_image_model(config)
+        return
+
     frame, data_path = load_training_frame(config)
     features, target, feature_columns = split_features_and_target(frame, config)
     train_features, test_features, train_target, test_target = split_train_test(features, target, config)
@@ -63,6 +70,18 @@ def train(args):
         return
 
     train_sklearn(config, frame, train_features, test_features, train_target, test_target, data_path, feature_columns)
+
+
+def train_image_model(config):
+    if config["task"] == "paired_image_translation":
+        from model_factory.image_pair_lora import train_paired_image_translation
+
+        train_paired_image_translation(config)
+        return
+
+    from model_factory.image_lora import train_image_generation_lora
+
+    train_image_generation_lora(config)
 
 
 def train_pytorch(config, train_features, test_features, train_target, test_target, data_path, feature_columns):

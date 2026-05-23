@@ -4,10 +4,10 @@ python = "3.13.13"
 [tasks.setup]
 description = "Create the shared root virtual environment and install dependencies."
 run = [
-  'python -m venv ..\..\.venv',
-  '..\..\.venv\Scripts\python.exe -m pip install -r ..\..\requirements.txt',
+  'python -m venv ..\..\..\.venv',
+  '..\..\..\.venv\Scripts\python.exe -m pip install -r ..\..\..\requirements.txt',
 ]
 
 [tasks.predict]
 description = "Run the Python example against the PyTorch .bin model."
-run = '..\..\.venv\Scripts\python.exe .\src\index.py fuck'
+run = '..\..\..\.venv\Scripts\python.exe .\src\index.py fuck'

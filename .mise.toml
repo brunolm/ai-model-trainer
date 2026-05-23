@@ -9,16 +9,24 @@ run = [
 ]
 
 [tasks.install-editable]
-description = "Install OwnModel as an editable local package."
+description = "Install AI Model Trainer as an editable local package."
 run = '.\.venv\Scripts\python.exe -m pip install -e .'
+
+[tasks.setup-image]
+description = "Install optional image-generation training dependencies."
+run = '.\.venv\Scripts\python.exe -m pip install -r .\requirements-image.txt'
 
 [tasks.train-profanity]
 description = "Train the example profanity classifier."
-run = '.\.venv\Scripts\python.exe -m model_factory train --config .\examples\profanity\config.yaml'
+run = '.\.venv\Scripts\python.exe -m model_factory train --config .\classic-ml\examples\profanity\config.yaml'
 
 [tasks.predict-profanity]
 description = "Run a sample prediction with the profanity classifier."
-run = '.\.venv\Scripts\python.exe -m model_factory predict --model .\models\profanity-classifier.bin --text fuck'
+run = '.\.venv\Scripts\python.exe -m model_factory predict --model .\classic-ml\models\profanity-classifier.bin --text fuck'
+
+[tasks.train-before-after]
+description = "Train the before/after image translation example."
+run = '.\.venv\Scripts\python.exe -m model_factory train --config .\image-generation\examples\before-after-transform\config.yaml'
 
 [tasks.check]
 description = "Run a lightweight project smoke test."

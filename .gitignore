@@ -20,3 +20,15 @@ models/*.onnx
 models/*.json
 models/*.csv
 !.gitkeep
+
+classic-ml/models/*
+!classic-ml/models/.gitkeep
+
+image-generation/models/*
+!image-generation/models/.gitkeep
+image-generation/examples/before-after-transform/before/*
+image-generation/examples/before-after-transform/after/*
+!image-generation/examples/before-after-transform/before/.gitkeep
+!image-generation/examples/before-after-transform/after/.gitkeep
+!image-generation/examples/before-after-transform/before/sample-*.png
+!image-generation/examples/before-after-transform/after/sample-*.png

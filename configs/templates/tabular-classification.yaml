@@ -1,0 +1,37 @@
+project:
+  name: my-tabular-classifier
+
+task: tabular_classification
+
+data:
+  path: data.csv
+  target: label
+
+features:
+  columns:
+    - age
+    - plan
+    - monthly_spend
+  numeric_columns:
+    - age
+    - monthly_spend
+  categorical_columns:
+    - plan
+
+model:
+  type: random_forest_classifier
+  params:
+    n_estimators: 200
+    random_state: 42
+
+split:
+  test_size: 0.2
+  random_state: 42
+  stratify: true
+
+labels:
+  positive_label: 1
+
+output:
+  model_path: ../../models/my-tabular-classifier.joblib
+  metrics_path: ../../models/my-tabular-classifier-metrics.json

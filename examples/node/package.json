@@ -1,0 +1,13 @@
+{
+  "name": "ai-model-trainer-node-example",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "predict": "bun run src/index.ts"
+  },
+  "dependencies": {
+    "onnxruntime-node": "^1.25.1"
+  }
+}

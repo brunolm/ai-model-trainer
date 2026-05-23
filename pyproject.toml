@@ -1,0 +1,16 @@
+[project]
+name = "ai-model-trainer"
+version = "0.1.0"
+description = "A small config-driven project for training your own machine learning models."
+requires-python = ">=3.10"
+dependencies = [
+  "pandas",
+  "scikit-learn",
+  "joblib",
+  "PyYAML",
+  "torch",
+  "onnx",
+]
+
+[project.scripts]
+ai-model-trainer = "model_factory.cli:main"

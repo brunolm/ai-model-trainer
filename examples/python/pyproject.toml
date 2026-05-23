@@ -1,0 +1,6 @@
+[project]
+name = "ai-model-trainer-python-example"
+version = "0.1.0"
+description = "Small Python example that loads the AI Model Trainer PyTorch .bin artifact."
+requires-python = ">=3.10"
+dependencies = []

@@ -1,0 +1,35 @@
+project:
+  name: my-tabular-regressor
+
+task: tabular_regression
+
+data:
+  path: data.csv
+  target: price
+
+features:
+  columns:
+    - bedrooms
+    - bathrooms
+    - neighborhood
+    - square_feet
+  numeric_columns:
+    - bedrooms
+    - bathrooms
+    - square_feet
+  categorical_columns:
+    - neighborhood
+
+model:
+  type: random_forest_regressor
+  params:
+    n_estimators: 200
+    random_state: 42
+
+split:
+  test_size: 0.2
+  random_state: 42
+
+output:
+  model_path: ../../models/my-tabular-regressor.joblib
+  metrics_path: ../../models/my-tabular-regressor-metrics.json

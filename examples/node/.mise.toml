@@ -1,0 +1,10 @@
+[tools]
+bun = "1.3.14"
+
+[tasks.setup]
+description = "Install Bun dependencies for the Node example."
+run = "bun install"
+
+[tasks.predict]
+description = "Run the Node example against the profanity model."
+run = "bun run src/index.ts fuck"

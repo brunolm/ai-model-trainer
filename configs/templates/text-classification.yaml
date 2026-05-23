@@ -1,0 +1,43 @@
+project:
+  name: my-text-classifier
+
+task: text_classification
+backend: pytorch
+
+data:
+  path: data.csv
+  text_column: text
+  target: label
+
+features:
+  type: tfidf
+  lowercase: true
+  analyzer: word
+  ngram_range: [1, 2]
+
+model:
+  type: feedforward_text_classifier
+  params:
+    hidden_sizes: [64]
+    dropout: 0.2
+
+training:
+  epochs: 80
+  batch_size: 16
+  learning_rate: 0.01
+  random_state: 42
+  device: auto
+
+split:
+  test_size: 0.2
+  random_state: 42
+  stratify: true
+
+labels:
+  positive_label: 1
+
+output:
+  model_path: ../../models/my-text-classifier.bin
+  onnx_path: ../../models/my-text-classifier.onnx
+  vectorizer_path: ../../models/my-text-classifier-vectorizer.json
+  metrics_path: ../../models/my-text-classifier-metrics.json

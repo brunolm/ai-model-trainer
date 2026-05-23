@@ -1,0 +1,28 @@
+[tools]
+python = "3.13.13"
+
+[tasks.setup]
+description = "Create the local virtual environment and install project dependencies."
+run = [
+  'python -m venv .venv',
+  '.\.venv\Scripts\python.exe -m pip install -r .\requirements.txt',
+]
+
+[tasks.install-editable]
+description = "Install OwnModel as an editable local package."
+run = '.\.venv\Scripts\python.exe -m pip install -e .'
+
+[tasks.train-profanity]
+description = "Train the example profanity classifier."
+run = '.\.venv\Scripts\python.exe -m model_factory train --config .\examples\profanity\config.yaml'
+
+[tasks.predict-profanity]
+description = "Run a sample prediction with the profanity classifier."
+run = '.\.venv\Scripts\python.exe -m model_factory predict --model .\models\profanity-classifier.bin --text fuck'
+
+[tasks.check]
+description = "Run a lightweight project smoke test."
+run = [
+  '.\.venv\Scripts\python.exe -m compileall .\model_factory',
+  '.\.venv\Scripts\python.exe -m model_factory --help',
+]
